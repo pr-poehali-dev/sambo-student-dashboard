@@ -1,230 +1,493 @@
 
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { useState } from "react";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import Icon from "@/components/ui/icon";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
+import Icon from "@/components/ui/icon";
+
+// Типы для профиля
+interface UserVideo {
+  id: number;
+  title: string;
+  uploadDate: string;
+  status: "sent" | "reviewed" | "feedback";
+  thumbnail: string;
+}
+
+interface UserAchievement {
+  id: number;
+  title: string;
+  description: string;
+  icon: string;
+  earnedDate: string;
+}
+
+interface UserDocument {
+  id: number;
+  title: string;
+  type: "diploma" | "certificate" | "photo";
+  date: string;
+  url: string;
+}
 
 const Profile = () => {
-  // Моковые данные для профиля
-  const profileData = {
-    name: "Алексей Иванов",
+  // Демо-данные профиля
+  const userData = {
+    name: "Алексей",
     age: 10,
     group: "Группа А",
-    avatar: "https://images.unsplash.com/photo-1570295999919-56ceb5ecca61?q=80&w=250&auto=format&fit=crop",
-    coach: "Петров С.М.",
-    videos: [
-      { 
-        id: 1, 
-        title: "Задняя подножка", 
-        date: "01.05.2025", 
-        status: "Проверено",
-        thumbnail: "https://images.unsplash.com/photo-1526232761682-d26e03ac148e?q=80&w=150&auto=format&fit=crop" 
-      },
-      { 
-        id: 2, 
-        title: "Бросок через бедро", 
-        date: "28.04.2025", 
-        status: "Получен совет",
-        thumbnail: "https://images.unsplash.com/photo-1555597673-b21d5c935865?q=80&w=150&auto=format&fit=crop" 
-      },
-      { 
-        id: 3, 
-        title: "Передняя подсечка", 
-        date: "20.04.2025", 
-        status: "Отправлено",
-        thumbnail: "https://images.unsplash.com/photo-1461896836934-ffe607ba8211?q=80&w=150&auto=format&fit=crop" 
-      }
-    ],
-    materials: [
-      { id: 1, title: "Диплом соревнований", date: "15.04.2025", type: "diploma" },
-      { id: 2, title: "Фото с турнира", date: "10.04.2025", type: "photo" },
-      { id: 3, title: "Сертификат участника", date: "01.04.2025", type: "certificate" }
-    ],
-    achievements: [
-      { id: 1, title: "Теория", progress: 70 },
-      { id: 2, title: "Практика", progress: 60 },
-      { id: 3, title: "Тесты", progress: 80 }
-    ]
+    joinDate: "Сентябрь 2024",
+    level: "Начинающий",
+    coach: "Иванов А.П.",
+    progress: {
+      theory: 65,
+      technique: 40,
+      videos: 80,
+      total: 62
+    }
   };
-
-  // Функция определения цвета статуса
-  const getStatusColor = (status: string) => {
+  
+  // Демо-данные видео пользователя
+  const userVideos: UserVideo[] = [
+    {
+      id: 1,
+      title: "Тренировка броска через бедро",
+      uploadDate: "2 мая 2025",
+      status: "feedback",
+      thumbnail: "https://images.unsplash.com/photo-1599058917765-a780eda07a3e?q=80&w=300&auto=format&fit=crop"
+    },
+    {
+      id: 2,
+      title: "Задняя подножка на тренировке",
+      uploadDate: "25 апреля 2025",
+      status: "reviewed",
+      thumbnail: "https://images.unsplash.com/photo-1517021897933-0e0319cfbc28?q=80&w=300&auto=format&fit=crop"
+    },
+    {
+      id: 3,
+      title: "Выполнение болевого приёма",
+      uploadDate: "18 апреля 2025",
+      status: "sent",
+      thumbnail: "https://images.unsplash.com/photo-1599058917212-d750089bc07e?q=80&w=300&auto=format&fit=crop"
+    }
+  ];
+  
+  // Демо-данные достижений
+  const userAchievements: UserAchievement[] = [
+    {
+      id: 1,
+      title: "Знаток теории",
+      description: "Завершено 80% теоретических материалов",
+      icon: "BookOpen",
+      earnedDate: "28 апреля 2025"
+    },
+    {
+      id: 2,
+      title: "Первый успех",
+      description: "Загружено первое видео тренировки",
+      icon: "Video",
+      earnedDate: "15 апреля 2025"
+    },
+    {
+      id: 3,
+      title: "Регулярные тренировки",
+      description: "7 дней подряд отмечено настроение",
+      icon: "Calendar",
+      earnedDate: "10 апреля 2025"
+    }
+  ];
+  
+  // Демо-данные документов
+  const userDocuments: UserDocument[] = [
+    {
+      id: 1,
+      title: "Диплом городского турнира",
+      type: "diploma",
+      date: "12 марта 2025",
+      url: "https://images.unsplash.com/photo-1570533679438-d6d122e3505f?q=80&w=300&auto=format&fit=crop"
+    },
+    {
+      id: 2,
+      title: "Сертификат 1 юношеского разряда",
+      type: "certificate",
+      date: "5 февраля 2025",
+      url: "https://images.unsplash.com/photo-1613280199977-c0f1ee5cfa2e?q=80&w=300&auto=format&fit=crop"
+    },
+    {
+      id: 3,
+      title: "Фото с мастер-класса",
+      type: "photo",
+      date: "20 января 2025",
+      url: "https://images.unsplash.com/photo-1511267919940-865f383a6e1f?q=80&w=300&auto=format&fit=crop"
+    }
+  ];
+  
+  const [selectedAvatar, setSelectedAvatar] = useState<string | null>(null);
+  
+  // Предустановленные аватары
+  const avatarOptions = [
+    "https://images.unsplash.com/photo-1570295999919-56ceb5ecca61?q=80&w=100&auto=format&fit=crop",
+    "https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=100&auto=format&fit=crop",
+    "https://images.unsplash.com/photo-1599566150163-29194dcaad36?q=80&w=100&auto=format&fit=crop",
+    "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?q=80&w=100&auto=format&fit=crop"
+  ];
+  
+  // Получение цвета для статуса видео
+  const getStatusColor = (status: UserVideo["status"]) => {
     switch (status) {
-      case "Проверено": return "green";
-      case "Получен совет": return "blue";
-      case "Отправлено": return "orange";
+      case "sent": return "blue";
+      case "reviewed": return "orange";
+      case "feedback": return "green";
       default: return "gray";
     }
   };
-
+  
+  // Получение текста для статуса видео
+  const getStatusText = (status: UserVideo["status"]) => {
+    switch (status) {
+      case "sent": return "Отправлено";
+      case "reviewed": return "Просмотрено";
+      case "feedback": return "Есть ответ";
+      default: return "Неизвестно";
+    }
+  };
+  
+  // Получение иконки для статуса видео
+  const getStatusIcon = (status: UserVideo["status"]) => {
+    switch (status) {
+      case "sent": return "Send";
+      case "reviewed": return "Eye";
+      case "feedback": return "MessageSquare";
+      default: return "HelpCircle";
+    }
+  };
+  
+  // Получение иконки для типа документа
+  const getDocumentIcon = (type: UserDocument["type"]) => {
+    switch (type) {
+      case "diploma": return "Award";
+      case "certificate": return "FileText";
+      case "photo": return "Image";
+      default: return "File";
+    }
+  };
+  
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
+      <div>
         <h1 className="text-2xl font-bold text-blue-700">Мой профиль</h1>
-        <Button variant="outline" size="sm">
-          <Icon name="Edit" className="h-4 w-4 mr-2" />
-          Редактировать
-        </Button>
+        <p className="text-slate-600">Управление личной информацией и документами</p>
       </div>
-
-      {/* Основная информация */}
-      <Card>
-        <CardContent className="p-6">
-          <div className="flex flex-col md:flex-row gap-6 items-center md:items-start">
-            <div className="text-center">
-              <Avatar className="h-32 w-32 mb-2">
-                <AvatarImage src={profileData.avatar} alt={profileData.name} />
-                <AvatarFallback>{profileData.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
-              </Avatar>
-              <Button variant="outline" size="sm" className="mt-2">
-                <Icon name="Upload" className="h-4 w-4 mr-2" />
-                Обновить фото
-              </Button>
-            </div>
-            
-            <div className="flex-1 space-y-4">
-              <div>
-                <h2 className="text-xl font-semibold">{profileData.name}</h2>
-                <p className="text-gray-600">{profileData.age} лет, {profileData.group}</p>
-                <p className="text-gray-600">Тренер: {profileData.coach}</p>
+      
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {/* Левая колонка - Личная информация */}
+        <div className="md:col-span-1 space-y-6">
+          <Card>
+            <CardHeader className="text-center pb-2">
+              <CardTitle>Личная информация</CardTitle>
+            </CardHeader>
+            <CardContent className="flex flex-col items-center">
+              <div className="relative group">
+                <Avatar className="h-24 w-24 mb-2">
+                  <AvatarImage src={selectedAvatar || avatarOptions[0]} alt={userData.name} />
+                  <AvatarFallback>{userData.name.substring(0, 2).toUpperCase()}</AvatarFallback>
+                </Avatar>
+                <div className="absolute bottom-0 right-0">
+                  <Button variant="outline" size="icon" className="rounded-full h-8 w-8 bg-white">
+                    <Icon name="PenSquare" className="h-4 w-4" />
+                  </Button>
+                </div>
               </div>
               
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {profileData.achievements.map(achievement => (
-                  <Card key={achievement.id} className="bg-gray-50">
-                    <CardContent className="p-4">
-                      <p className="font-medium">{achievement.title}</p>
-                      <p className="text-2xl font-bold text-blue-600">{achievement.progress}%</p>
-                    </CardContent>
-                  </Card>
-                ))}
+              <h2 className="text-xl font-bold mt-2">{userData.name}</h2>
+              <div className="text-sm text-gray-500 mb-4">{userData.age} лет, {userData.group}</div>
+              
+              <div className="w-full space-y-4">
+                <div className="flex items-center gap-2">
+                  <Icon name="User" className="text-blue-600 h-5 w-5" />
+                  <div>
+                    <div className="text-sm font-medium">Уровень</div>
+                    <div className="text-sm text-gray-600">{userData.level}</div>
+                  </div>
+                </div>
+                
+                <div className="flex items-center gap-2">
+                  <Icon name="UserCheck" className="text-blue-600 h-5 w-5" />
+                  <div>
+                    <div className="text-sm font-medium">Тренер</div>
+                    <div className="text-sm text-gray-600">{userData.coach}</div>
+                  </div>
+                </div>
+                
+                <div className="flex items-center gap-2">
+                  <Icon name="Calendar" className="text-blue-600 h-5 w-5" />
+                  <div>
+                    <div className="text-sm font-medium">Дата начала</div>
+                    <div className="text-sm text-gray-600">{userData.joinDate}</div>
+                  </div>
+                </div>
               </div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Вкладки */}
-      <Tabs defaultValue="videos" className="w-full">
-        <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="videos">Мои видео</TabsTrigger>
-          <TabsTrigger value="materials">Личные материалы</TabsTrigger>
-        </TabsList>
-        
-        <TabsContent value="videos" className="mt-4">
+            </CardContent>
+            <CardFooter>
+              <Button className="w-full">Редактировать профиль</Button>
+            </CardFooter>
+          </Card>
+          
+          {/* Блок с аватарами */}
           <Card>
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <CardTitle>Загруженные видео</CardTitle>
-                <Button>
-                  <Icon name="Plus" className="h-4 w-4 mr-2" />
-                  Добавить видео
-                </Button>
-              </div>
-              <CardDescription>
-                Загрузи видео с тренировки, чтобы получить советы от тренера
-              </CardDescription>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm">Выбрать аватар</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="space-y-4">
-                {profileData.videos.map(video => (
-                  <Card key={video.id} className="overflow-hidden">
-                    <div className="flex flex-col sm:flex-row">
-                      <div className="w-full sm:w-32 h-24 bg-gray-200">
-                        <img 
-                          src={video.thumbnail} 
-                          alt={video.title} 
-                          className="w-full h-full object-cover"
-                        />
-                      </div>
-                      <div className="p-4 flex-1">
-                        <div className="flex justify-between">
-                          <h3 className="font-medium">{video.title}</h3>
-                          <Badge 
-                            variant="outline" 
-                            className={`bg-${getStatusColor(video.status)}-50 text-${getStatusColor(video.status)}-700 border-${getStatusColor(video.status)}-200`}
-                          >
-                            {video.status}
+              <div className="grid grid-cols-4 gap-2">
+                {avatarOptions.map((avatar, index) => (
+                  <button
+                    key={index}
+                    className={`rounded-full overflow-hidden border-2 ${
+                      selectedAvatar === avatar ? 'border-blue-500' : 'border-transparent'
+                    }`}
+                    onClick={() => setSelectedAvatar(avatar)}
+                  >
+                    <img src={avatar} alt={`Аватар ${index+1}`} className="h-12 w-12 object-cover" />
+                  </button>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+          
+          {/* Прогресс обучения */}
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm">Прогресс обучения</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="text-center mb-4">
+                <div className="relative inline-block">
+                  <div className="w-24 h-24 rounded-full border-4 border-blue-100 flex items-center justify-center">
+                    <span className="text-2xl font-bold text-blue-700">{userData.progress.total}%</span>
+                  </div>
+                  <div className="absolute top-0 left-0 right-0 bottom-0">
+                    <svg width="100%" height="100%" viewBox="0 0 100 100" className="rotate-[-90deg]">
+                      <circle cx="50" cy="50" r="40" fill="none" stroke="#dbeafe" strokeWidth="8" />
+                      <circle 
+                        cx="50" 
+                        cy="50" 
+                        r="40" 
+                        fill="none" 
+                        stroke="#3b82f6" 
+                        strokeWidth="8" 
+                        strokeDasharray={`${2 * Math.PI * 40 * userData.progress.total / 100} ${2 * Math.PI * 40 * (1 - userData.progress.total / 100)}`}
+                        strokeLinecap="round"
+                      />
+                    </svg>
+                  </div>
+                </div>
+                <div className="mt-2 text-sm text-gray-600">Общий прогресс</div>
+              </div>
+              
+              <div className="space-y-2">
+                <div className="space-y-1">
+                  <div className="flex justify-between text-xs">
+                    <span>Теория</span>
+                    <span>{userData.progress.theory}%</span>
+                  </div>
+                  <Progress value={userData.progress.theory} className="h-1.5" />
+                </div>
+                
+                <div className="space-y-1">
+                  <div className="flex justify-between text-xs">
+                    <span>Техника</span>
+                    <span>{userData.progress.technique}%</span>
+                  </div>
+                  <Progress value={userData.progress.technique} className="h-1.5" />
+                </div>
+                
+                <div className="space-y-1">
+                  <div className="flex justify-between text-xs">
+                    <span>Видеоуроки</span>
+                    <span>{userData.progress.videos}%</span>
+                  </div>
+                  <Progress value={userData.progress.videos} className="h-1.5" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+        
+        {/* Правая колонка - Видео, достижения и документы */}
+        <div className="md:col-span-2">
+          <Tabs defaultValue="videos">
+            <TabsList className="grid grid-cols-3 mb-4">
+              <TabsTrigger value="videos">
+                <Icon name="Video" className="mr-2 h-4 w-4" />
+                Мои видео
+              </TabsTrigger>
+              <TabsTrigger value="achievements">
+                <Icon name="Award" className="mr-2 h-4 w-4" />
+                Достижения
+              </TabsTrigger>
+              <TabsTrigger value="documents">
+                <Icon name="FileText" className="mr-2 h-4 w-4" />
+                Документы
+              </TabsTrigger>
+            </TabsList>
+            
+            {/* Вкладка с видео */}
+            <TabsContent value="videos">
+              <Card>
+                <CardHeader className="pb-2">
+                  <div className="flex justify-between items-center">
+                    <CardTitle>Загруженные видео</CardTitle>
+                    <Button>
+                      <Icon name="PlusCircle" className="mr-2 h-4 w-4" />
+                      Добавить видео
+                    </Button>
+                  </div>
+                  <CardDescription>Загрузи видео своей тренировки для проверки тренером</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  {userVideos.length > 0 ? (
+                    <div className="space-y-4">
+                      {userVideos.map((video) => (
+                        <div key={video.id} className="flex gap-4 items-center bg-white p-3 rounded-lg hover:shadow-md transition-shadow border">
+                          <div className="relative w-24 h-16 overflow-hidden rounded">
+                            <img 
+                              src={video.thumbnail} 
+                              alt={video.title} 
+                              className="w-full h-full object-cover" 
+                            />
+                            <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-30">
+                              <Icon name="Play" className="text-white h-8 w-8" />
+                            </div>
+                          </div>
+                          
+                          <div className="flex-1 min-w-0">
+                            <h3 className="font-medium text-blue-700 truncate">{video.title}</h3>
+                            <div className="flex items-center mt-1">
+                              <Icon name="Calendar" className="text-gray-400 h-3 w-3 mr-1" />
+                              <span className="text-xs text-gray-500">{video.uploadDate}</span>
+                            </div>
+                          </div>
+                          
+                          <Badge className={`bg-${getStatusColor(video.status)}-100 text-${getStatusColor(video.status)}-700 flex items-center gap-1`}>
+                            <Icon name={getStatusIcon(video.status)} className="h-3 w-3" />
+                            {getStatusText(video.status)}
                           </Badge>
                         </div>
-                        <p className="text-sm text-gray-500 mt-1">Загружено: {video.date}</p>
-                        <div className="flex gap-2 mt-2">
-                          <Button variant="outline" size="sm">
-                            <Icon name="Eye" className="h-4 w-4 mr-1" />
-                            Просмотр
-                          </Button>
-                          <Button variant="outline" size="sm" className="text-red-600 hover:text-red-700">
-                            <Icon name="Trash2" className="h-4 w-4 mr-1" />
-                            Удалить
-                          </Button>
-                        </div>
-                      </div>
+                      ))}
                     </div>
-                  </Card>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-        
-        <TabsContent value="materials" className="mt-4">
-          <Card>
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <CardTitle>Личные материалы</CardTitle>
-                <Button>
-                  <Icon name="Plus" className="h-4 w-4 mr-2" />
-                  Добавить материал
-                </Button>
-              </div>
-              <CardDescription>
-                Загрузи дипломы, сертификаты и фото с соревнований
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {profileData.materials.map(material => (
-                  <Card key={material.id} className="p-4">
-                    <div className="flex items-center gap-3">
-                      <div className={`p-2 rounded-full bg-${
-                        material.type === 'diploma' ? 'green' : 
-                        material.type === 'certificate' ? 'blue' : 'orange'
-                      }-100`}>
-                        <Icon 
-                          name={
-                            material.type === 'diploma' ? 'Award' : 
-                            material.type === 'certificate' ? 'FileText' : 'Image'
-                          } 
-                          className={`h-5 w-5 text-${
-                            material.type === 'diploma' ? 'green' : 
-                            material.type === 'certificate' ? 'blue' : 'orange'
-                          }-600`} 
-                        />
-                      </div>
-                      <div className="flex-1">
-                        <p className="font-medium">{material.title}</p>
-                        <p className="text-sm text-gray-500">Загружено: {material.date}</p>
-                      </div>
-                      <Button variant="ghost" size="sm">
-                        <Icon name="Download" className="h-4 w-4" />
+                  ) : (
+                    <div className="text-center py-6">
+                      <Icon name="Video" className="h-12 w-12 text-gray-300 mx-auto mb-2" />
+                      <h3 className="text-lg font-medium text-gray-700">Нет загруженных видео</h3>
+                      <p className="text-gray-500 mb-4">Загрузи свою первую тренировку для отзыва тренера</p>
+                      <Button>
+                        <Icon name="PlusCircle" className="mr-2 h-4 w-4" />
+                        Добавить видео
                       </Button>
                     </div>
-                  </Card>
-                ))}
-              </div>
-              
-              <div className="mt-6 text-center">
-                <Button variant="outline">
-                  <Icon name="DownloadCloud" className="h-4 w-4 mr-2" />
-                  Скачать сертификат прогресса
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
+                  )}
+                </CardContent>
+              </Card>
+            </TabsContent>
+            
+            {/* Вкладка с достижениями */}
+            <TabsContent value="achievements">
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle>Мои достижения</CardTitle>
+                  <CardDescription>Твои награды и достижения за успехи в обучении</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  {userAchievements.length > 0 ? (
+                    <div className="space-y-4">
+                      {userAchievements.map((achievement) => (
+                        <div key={achievement.id} className="flex gap-4 items-center bg-white p-3 rounded-lg hover:shadow-md transition-shadow border">
+                          <div className="p-3 bg-blue-100 rounded-full">
+                            <Icon name={achievement.icon} className="text-blue-600 h-6 w-6" />
+                          </div>
+                          
+                          <div className="flex-1">
+                            <h3 className="font-medium text-blue-700">{achievement.title}</h3>
+                            <p className="text-sm text-gray-600">{achievement.description}</p>
+                            <div className="flex items-center mt-1">
+                              <Icon name="Calendar" className="text-gray-400 h-3 w-3 mr-1" />
+                              <span className="text-xs text-gray-500">Получено: {achievement.earnedDate}</span>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-center py-6">
+                      <Icon name="Award" className="h-12 w-12 text-gray-300 mx-auto mb-2" />
+                      <h3 className="text-lg font-medium text-gray-700">Нет достижений</h3>
+                      <p className="text-gray-500">Выполняй задания и получай награды</p>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </TabsContent>
+            
+            {/* Вкладка с документами */}
+            <TabsContent value="documents">
+              <Card>
+                <CardHeader className="pb-2">
+                  <div className="flex justify-between items-center">
+                    <CardTitle>Личные документы</CardTitle>
+                    <Button>
+                      <Icon name="Upload" className="mr-2 h-4 w-4" />
+                      Загрузить
+                    </Button>
+                  </div>
+                  <CardDescription>Дипломы, сертификаты и фотографии с соревнований</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  {userDocuments.length > 0 ? (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      {userDocuments.map((document) => (
+                        <div key={document.id} className="border rounded-lg overflow-hidden bg-white hover:shadow-md transition-shadow">
+                          <div className="aspect-video relative">
+                            <img 
+                              src={document.url} 
+                              alt={document.title} 
+                              className="w-full h-full object-cover" 
+                            />
+                            <div className="absolute top-2 right-2 bg-white p-1 rounded-full">
+                              <Icon name={getDocumentIcon(document.type)} className="h-4 w-4 text-blue-600" />
+                            </div>
+                          </div>
+                          
+                          <div className="p-3">
+                            <h3 className="font-medium text-blue-700 text-sm">{document.title}</h3>
+                            <div className="flex items-center mt-1">
+                              <Icon name="Calendar" className="text-gray-400 h-3 w-3 mr-1" />
+                              <span className="text-xs text-gray-500">{document.date}</span>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-center py-6">
+                      <Icon name="FileText" className="h-12 w-12 text-gray-300 mx-auto mb-2" />
+                      <h3 className="text-lg font-medium text-gray-700">Нет загруженных документов</h3>
+                      <p className="text-gray-500 mb-4">Загрузите свои дипломы и сертификаты</p>
+                      <Button>
+                        <Icon name="Upload" className="mr-2 h-4 w-4" />
+                        Загрузить документ
+                      </Button>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </TabsContent>
+          </Tabs>
+        </div>
+      </div>
     </div>
   );
 };
